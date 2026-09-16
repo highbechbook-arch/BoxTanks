@@ -863,7 +863,9 @@
   function bindStick(pad, knob, kind) {
     if (!pad || !knob) return;
     let activeId = null;
-    let lastTapTime = 0;
+    let holdTimer = null;
+    let holdFired = false;
+    const AIM_FIRE_HOLD_MS = 350;
     function update(e) {
       const r = pad.getBoundingClientRect();
       let dx = e.clientX - (r.left + r.width / 2);
@@ -879,6 +881,8 @@
     }
     function end(e) {
       if (activeId !== null && e.pointerId !== activeId) return;
+      if (holdTimer !== null) { clearTimeout(holdTimer); holdTimer = null; }
+      holdFired = false;
       activeId = null;
       if (kind === "move") {
         knob.style.left = "32%"; knob.style.top = "32%";
@@ -889,16 +893,19 @@
     }
     pad.addEventListener("pointerdown", e => {
       e.preventDefault();
-      const now = performance.now();
-      if (kind === "aim" && now - lastTapTime < 320) {
-        const p1 = findPlayer(1);
-        if (p1 && p1.alive) tryFire(p1);
-        if (audio) audio.ensureStarted();
-        lastTapTime = 0;
-      } else if (kind === "aim") {
-        lastTapTime = now;
-      }
       activeId=e.pointerId; pad.setPointerCapture(e.pointerId); update(e);
+      if (kind === "aim") {
+        holdFired = false;
+        if (holdTimer !== null) clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => {
+          if (activeId !== e.pointerId || holdFired) return;
+          const p1 = findPlayer(1);
+          if (p1 && p1.alive) tryFire(p1);
+          if (audio) audio.ensureStarted();
+          holdFired = true;
+          holdTimer = null;
+        }, AIM_FIRE_HOLD_MS);
+      }
     });
     pad.addEventListener("pointermove", e => { if (e.pointerId === activeId) { e.preventDefault(); update(e); } });
     pad.addEventListener("pointerup", end);
