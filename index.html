@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>BOX TANKS - Step 4 Sound & Save</title>
+  <title>BOX TANKS</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,8 +20,19 @@
 
       <button id="soundButton" class="sound-button" type="button" aria-pressed="false">SOUND ON</button>
       <button id="backButton" class="back-button" type="button" hidden>TITLE</button>
+
+      <div id="mobileControls" class="mobile-controls" hidden aria-label="Mobile controls">
+        <div id="movePad" class="touch-stick move-stick" aria-label="Move">
+          <div class="stick-label">MOVE</div><div id="moveKnob" class="stick-knob"></div>
+        </div>
+        <div id="aimPad" class="touch-stick aim-stick" aria-label="Aim">
+          <div class="stick-label">AIM</div><div id="aimKnob" class="stick-knob"></div>
+        </div>
+        <button id="fireButton" class="action-button fire-button" type="button">FIRE</button>
+        <button id="mineButton" class="action-button mine-button" type="button">MINE</button>
+      </div>
     </section>
-    <p class="step-note">STEP 4: Web Audio sound effects + localStorage unlock save.</p>
+    <p class="step-note">PC: keyboard + mouse / Smartphone: touch controls</p>
   </main>
 
   <script src="renderer.js"></script>

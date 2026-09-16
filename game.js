@@ -16,6 +16,15 @@
   const FIELD = { left: 24, top: 72, right: 936, bottom: 636 };
   const keys = new Set();
   const mouse = { x: 480, y: 340, left: false, right: false };
+  const mobileControls = document.getElementById("mobileControls");
+  const movePad = document.getElementById("movePad");
+  const moveKnob = document.getElementById("moveKnob");
+  const aimPad = document.getElementById("aimPad");
+  const aimKnob = document.getElementById("aimKnob");
+  const fireButton = document.getElementById("fireButton");
+  const mineButton = document.getElementById("mineButton");
+  const coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const touch = { moveX:0, moveY:0, aimX:1, aimY:0, aiming:false, fire:false, mine:false };
 
   let game = makeTitleGame();
   let raf = 0;
@@ -142,6 +151,7 @@
     };
     titleMenu.hidden = true;
     backButton.hidden = false;
+    if (mobileControls) mobileControls.hidden = !coarsePointer;
     loadMission();
     canvas.focus();
   }
@@ -150,7 +160,9 @@
     game = makeTitleGame();
     titleMenu.hidden = false;
     backButton.hidden = true;
+    if (mobileControls) mobileControls.hidden = true;
     keys.clear();
+    resetTouchControls();
     mouse.left = mouse.right = false;
     renderer.render(toRenderModel());
   }
@@ -314,10 +326,13 @@
     const p1 = findPlayer(1);
     const p2 = findPlayer(2);
     if (p1 && p1.alive) {
-      movePlayerVector(p1, (down("KeyD") ? 1 : 0) - (down("KeyA") ? 1 : 0), (down("KeyS") ? 1 : 0) - (down("KeyW") ? 1 : 0));
-      p1.turretAngle = Math.atan2(mouse.y - p1.y, mouse.x - p1.x);
-      if (mouse.left || down("KeyF")) tryFire(p1);
-      if (mouse.right || down("Space")) tryDropMine(p1);
+      const kx = (down("KeyD") ? 1 : 0) - (down("KeyA") ? 1 : 0);
+      const ky = (down("KeyS") ? 1 : 0) - (down("KeyW") ? 1 : 0);
+      movePlayerVector(p1, Math.abs(touch.moveX) > .05 ? touch.moveX : kx, Math.abs(touch.moveY) > .05 ? touch.moveY : ky);
+      if (touch.aiming) p1.turretAngle = Math.atan2(touch.aimY, touch.aimX);
+      else p1.turretAngle = Math.atan2(mouse.y - p1.y, mouse.x - p1.x);
+      if (mouse.left || down("KeyF") || touch.fire) tryFire(p1);
+      if (mouse.right || down("Space") || touch.mine) tryDropMine(p1);
     }
 
     if (game.twoPlayer && p2 && p2.alive) {
@@ -818,7 +833,7 @@
   }, { passive: false });
 
   window.addEventListener("keyup", e => keys.delete(e.code));
-  window.addEventListener("blur", () => { keys.clear(); mouse.left = mouse.right = false; });
+  window.addEventListener("blur", () => { keys.clear(); mouse.left = mouse.right = false; resetTouchControls(); });
 
   canvas.addEventListener("mousemove", updateMousePosition);
   canvas.addEventListener("mousedown", e => {
@@ -832,6 +847,58 @@
     if (e.button === 2) mouse.right = false;
   });
   canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+
+
+  function resetTouchControls() {
+    touch.moveX = touch.moveY = 0;
+    touch.aimX = 1; touch.aimY = 0; touch.aiming = false;
+    touch.fire = touch.mine = false;
+    if (moveKnob) { moveKnob.style.left = "32%"; moveKnob.style.top = "32%"; }
+    if (aimKnob) { aimKnob.style.left = "32%"; aimKnob.style.top = "32%"; }
+  }
+
+  function bindStick(pad, knob, kind) {
+    if (!pad || !knob) return;
+    let activeId = null;
+    function update(e) {
+      const r = pad.getBoundingClientRect();
+      let dx = e.clientX - (r.left + r.width / 2);
+      let dy = e.clientY - (r.top + r.height / 2);
+      const max = r.width * .32;
+      const len = Math.hypot(dx, dy);
+      if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+      knob.style.left = `${32 + dx / r.width * 100}%`;
+      knob.style.top = `${32 + dy / r.height * 100}%`;
+      const nx = dx / max, ny = dy / max;
+      if (kind === "move") { touch.moveX = nx; touch.moveY = ny; }
+      else if (Math.hypot(nx, ny) > .12) { touch.aimX = nx; touch.aimY = ny; touch.aiming = true; }
+    }
+    function end(e) {
+      if (activeId !== null && e.pointerId !== activeId) return;
+      activeId = null;
+      knob.style.left = "32%"; knob.style.top = "32%";
+      if (kind === "move") { touch.moveX = 0; touch.moveY = 0; }
+      else touch.aiming = false;
+    }
+    pad.addEventListener("pointerdown", e => { e.preventDefault(); activeId=e.pointerId; pad.setPointerCapture(e.pointerId); update(e); });
+    pad.addEventListener("pointermove", e => { if (e.pointerId === activeId) { e.preventDefault(); update(e); } });
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
+  }
+
+  function bindHoldButton(button, key) {
+    if (!button) return;
+    const off = e => { e.preventDefault(); touch[key] = false; };
+    button.addEventListener("pointerdown", e => { e.preventDefault(); button.setPointerCapture(e.pointerId); touch[key] = true; if (audio) audio.ensureStarted(); });
+    button.addEventListener("pointerup", off);
+    button.addEventListener("pointercancel", off);
+  }
+
+  bindStick(movePad, moveKnob, "move");
+  bindStick(aimPad, aimKnob, "aim");
+  bindHoldButton(fireButton, "fire");
+  bindHoldButton(mineButton, "mine");
 
   onePlayerButton.addEventListener("click", () => { if (audio) audio.playUi(); startGame(false); });
   twoPlayerButton.addEventListener("click", () => { if (audio) audio.playUi(); startGame(true); });

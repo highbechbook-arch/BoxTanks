@@ -6,6 +6,13 @@
 
 * { box-sizing: border-box; }
 
+/* Ensure elements controlled with the HTML hidden attribute really disappear.
+   This is important because .menu-layer defines display:grid, which would
+   otherwise override the browser's default [hidden] style. */
+[hidden] {
+  display: none !important;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -105,4 +112,34 @@ canvas {
   body { padding: 6px; }
   .menu-layer { gap: 6px; }
   .step-note { font-size: 10px; }
+}
+
+
+/* Smartphone controls */
+html, body { overscroll-behavior: none; }
+.game-shell, canvas, .mobile-controls { touch-action: none; -webkit-touch-callout: none; }
+.mobile-controls { position:absolute; inset:0; pointer-events:none; z-index:5; }
+.touch-stick { position:absolute; bottom:3.5%; width:24%; aspect-ratio:1; border:2px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(30,25,18,.28); pointer-events:auto; touch-action:none; }
+.move-stick { left:3%; }
+.aim-stick { right:3%; }
+.stick-knob { position:absolute; width:36%; aspect-ratio:1; left:32%; top:32%; border-radius:50%; background:rgba(255,255,255,.62); box-shadow:0 2px 8px rgba(0,0,0,.35); pointer-events:none; }
+.stick-label { position:absolute; inset:0; display:grid; place-items:center; color:rgba(255,255,255,.75); font:700 clamp(9px,2.4vw,15px)/1 Consolas,monospace; pointer-events:none; }
+.action-button { position:absolute; width:13%; min-width:54px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,255,255,.7); color:#fff; font:700 clamp(9px,2.5vw,15px)/1 Consolas,monospace; pointer-events:auto; touch-action:none; }
+.fire-button { right:28%; bottom:18%; background:rgba(150,45,35,.72); }
+.mine-button { right:28%; bottom:3.5%; background:rgba(65,65,65,.72); }
+.action-button:active { transform:scale(.94); filter:brightness(1.2); }
+
+@media (pointer: coarse), (max-width: 900px) {
+  body { padding:0; min-height:100dvh; background:#191510; overflow:hidden; }
+  .page-shell { width:100vw; height:100dvh; display:flex; align-items:center; justify-content:center; }
+  .game-shell { width:100vw; max-height:100dvh; border:0; box-shadow:none; }
+  .step-note { display:none; }
+  .sound-button { left:1.5%; bottom:auto; top:1.2%; width:80px; height:27px; font-size:9px; z-index:7; }
+  .back-button { right:1.5%; bottom:auto; top:1.2%; width:65px; height:27px; font-size:10px; z-index:7; }
+  .menu-button { min-height:38px; }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  .page-shell { transform:none; }
+  .game-shell { width:100vw; }
 }
