@@ -125,7 +125,6 @@ html, body { overscroll-behavior: none; }
 .stick-knob { position:absolute; width:36%; aspect-ratio:1; left:32%; top:32%; border-radius:50%; background:rgba(255,255,255,.62); box-shadow:0 2px 8px rgba(0,0,0,.35); pointer-events:none; }
 .stick-label { position:absolute; inset:0; display:grid; place-items:center; color:rgba(255,255,255,.75); font:700 clamp(9px,2.4vw,15px)/1 Consolas,monospace; pointer-events:none; }
 .action-button { position:absolute; width:13%; min-width:54px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,255,255,.7); color:#fff; font:700 clamp(9px,2.5vw,15px)/1 Consolas,monospace; pointer-events:auto; touch-action:none; }
-.fire-button { right:28%; bottom:18%; background:rgba(150,45,35,.72); }
 .mine-button { right:28%; bottom:3.5%; background:rgba(65,65,65,.72); }
 .action-button:active { transform:scale(.94); filter:brightness(1.2); }
 

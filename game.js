@@ -21,7 +21,6 @@
   const moveKnob = document.getElementById("moveKnob");
   const aimPad = document.getElementById("aimPad");
   const aimKnob = document.getElementById("aimKnob");
-  const fireButton = document.getElementById("fireButton");
   const mineButton = document.getElementById("mineButton");
   const coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   const touch = { moveX:0, moveY:0, aimX:1, aimY:0, aiming:false, fire:false, mine:false };
@@ -329,8 +328,11 @@
       const kx = (down("KeyD") ? 1 : 0) - (down("KeyA") ? 1 : 0);
       const ky = (down("KeyS") ? 1 : 0) - (down("KeyW") ? 1 : 0);
       movePlayerVector(p1, Math.abs(touch.moveX) > .05 ? touch.moveX : kx, Math.abs(touch.moveY) > .05 ? touch.moveY : ky);
-      if (touch.aiming) p1.turretAngle = Math.atan2(touch.aimY, touch.aimX);
-      else p1.turretAngle = Math.atan2(mouse.y - p1.y, mouse.x - p1.x);
+      if (coarsePointer) {
+        if (touch.aiming) p1.turretAngle = Math.atan2(touch.aimY, touch.aimX);
+      } else {
+        p1.turretAngle = Math.atan2(mouse.y - p1.y, mouse.x - p1.x);
+      }
       if (mouse.left || down("KeyF") || touch.fire) tryFire(p1);
       if (mouse.right || down("Space") || touch.mine) tryDropMine(p1);
     }
@@ -861,6 +863,7 @@
   function bindStick(pad, knob, kind) {
     if (!pad || !knob) return;
     let activeId = null;
+    let lastTapTime = 0;
     function update(e) {
       const r = pad.getBoundingClientRect();
       let dx = e.clientX - (r.left + r.width / 2);
@@ -877,11 +880,26 @@
     function end(e) {
       if (activeId !== null && e.pointerId !== activeId) return;
       activeId = null;
-      knob.style.left = "32%"; knob.style.top = "32%";
-      if (kind === "move") { touch.moveX = 0; touch.moveY = 0; }
-      else touch.aiming = false;
+      if (kind === "move") {
+        knob.style.left = "32%"; knob.style.top = "32%";
+        touch.moveX = 0; touch.moveY = 0;
+      }
+      // AIM is intentionally left at the last selected direction.
+      // This keeps both the turret direction and the knob position persistent.
     }
-    pad.addEventListener("pointerdown", e => { e.preventDefault(); activeId=e.pointerId; pad.setPointerCapture(e.pointerId); update(e); });
+    pad.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      const now = performance.now();
+      if (kind === "aim" && now - lastTapTime < 320) {
+        const p1 = findPlayer(1);
+        if (p1 && p1.alive) tryFire(p1);
+        if (audio) audio.ensureStarted();
+        lastTapTime = 0;
+      } else if (kind === "aim") {
+        lastTapTime = now;
+      }
+      activeId=e.pointerId; pad.setPointerCapture(e.pointerId); update(e);
+    });
     pad.addEventListener("pointermove", e => { if (e.pointerId === activeId) { e.preventDefault(); update(e); } });
     pad.addEventListener("pointerup", end);
     pad.addEventListener("pointercancel", end);
@@ -897,7 +915,6 @@
 
   bindStick(movePad, moveKnob, "move");
   bindStick(aimPad, aimKnob, "aim");
-  bindHoldButton(fireButton, "fire");
   bindHoldButton(mineButton, "mine");
 
   onePlayerButton.addEventListener("click", () => { if (audio) audio.playUi(); startGame(false); });
