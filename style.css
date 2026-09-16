@@ -1,0 +1,108 @@
+:root {
+  color-scheme: dark;
+  font-family: Consolas, "Meiryo UI", monospace;
+  background: #191510;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(184, 145, 87, 0.25), transparent 45%),
+    #191510;
+}
+
+.page-shell {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.game-shell {
+  position: relative;
+  width: min(100%, 960px);
+  aspect-ratio: 960 / 690;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  background: #cdb584;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #cdb584;
+}
+
+.menu-layer {
+  position: absolute;
+  left: 36.458333%;
+  top: 58.695652%;
+  width: 27.083333%;
+  display: grid;
+  gap: 11px;
+}
+
+.menu-button,
+.back-button,
+.sound-button {
+  border: 2px solid #e6d2aa;
+  background: #51432f;
+  color: #fff;
+  font: 700 clamp(12px, 1.7vw, 18px)/1 Consolas, monospace;
+  letter-spacing: .04em;
+  height: clamp(34px, 6.7vw, 46px);
+  cursor: pointer;
+  transition: transform .08s ease, filter .08s ease;
+}
+
+.menu-button:hover,
+.back-button:hover,
+.sound-button:hover { filter: brightness(1.16); }
+.menu-button:active,
+.back-button:active,
+.sound-button:active { transform: translateY(1px); }
+.menu-button.secondary { color: #f3d562; }
+
+.sound-button {
+  position: absolute;
+  left: 2.5%;
+  bottom: 2.8%;
+  width: 112px;
+  height: 34px;
+  font-size: 12px;
+}
+
+.back-button {
+  position: absolute;
+  right: 2.5%;
+  bottom: 2.8%;
+  width: 105px;
+  height: 34px;
+  font-size: 13px;
+}
+
+.step-note {
+  margin: 0;
+  color: #c8baa0;
+  font: 12px/1.4 "Meiryo UI", sans-serif;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  body { padding: 6px; }
+  .menu-layer { gap: 6px; }
+  .step-note { font-size: 10px; }
+}

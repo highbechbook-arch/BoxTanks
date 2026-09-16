@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>BOX TANKS - Step 4 Sound & Save</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section id="gameShell" class="game-shell" aria-label="BOX TANKS">
+      <canvas id="gameCanvas" width="960" height="690" tabindex="0">
+        Your browser does not support HTML5 Canvas.
+      </canvas>
+
+      <div id="titleMenu" class="menu-layer" aria-label="Title menu">
+        <button id="onePlayerButton" class="menu-button" type="button">1 PLAYER</button>
+        <button id="twoPlayerButton" class="menu-button" type="button">2 PLAYERS</button>
+      </div>
+
+      <button id="soundButton" class="sound-button" type="button" aria-pressed="false">SOUND ON</button>
+      <button id="backButton" class="back-button" type="button" hidden>TITLE</button>
+    </section>
+    <p class="step-note">STEP 4: Web Audio sound effects + localStorage unlock save.</p>
+  </main>
+
+  <script src="renderer.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
