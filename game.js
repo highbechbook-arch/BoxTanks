@@ -863,10 +863,9 @@
   function bindStick(pad, knob, kind) {
     if (!pad || !knob) return;
     let activeId = null;
-    let startX = 0, startY = 0;
-    let dragged = false;
-    const TAP_MOVE_PX = 12;
-
+    let holdTimer = null;
+    let holdFired = false;
+    const AIM_FIRE_HOLD_MS = 100;
     function update(e) {
       const r = pad.getBoundingClientRect();
       let dx = e.clientX - (r.left + r.width / 2);
@@ -880,48 +879,37 @@
       if (kind === "move") { touch.moveX = nx; touch.moveY = ny; }
       else if (Math.hypot(nx, ny) > .12) { touch.aimX = nx; touch.aimY = ny; touch.aiming = true; }
     }
-
     function end(e) {
       if (activeId !== null && e.pointerId !== activeId) return;
-
-      // AIM: a quick tap fires. Dragging only changes aim.
-      if (kind === "aim" && !dragged) {
-        const p1 = findPlayer(1);
-        if (p1 && p1.alive) tryFire(p1);
-        if (audio) audio.ensureStarted();
-      }
-
+      if (holdTimer !== null) { clearTimeout(holdTimer); holdTimer = null; }
+      holdFired = false;
       activeId = null;
       if (kind === "move") {
         knob.style.left = "32%"; knob.style.top = "32%";
         touch.moveX = 0; touch.moveY = 0;
       }
-      // AIM intentionally stays at the last selected direction after release.
+      // AIM is intentionally left at the last selected direction.
+      // This keeps both the turret direction and the knob position persistent.
     }
-
     pad.addEventListener("pointerdown", e => {
       e.preventDefault();
-      activeId = e.pointerId;
-      startX = e.clientX; startY = e.clientY;
-      dragged = false;
-      pad.setPointerCapture(e.pointerId);
-      update(e);
-    });
-    pad.addEventListener("pointermove", e => {
-      if (e.pointerId !== activeId) return;
-      e.preventDefault();
-      if (Math.hypot(e.clientX - startX, e.clientY - startY) > TAP_MOVE_PX) dragged = true;
-      update(e);
-    });
-    pad.addEventListener("pointerup", end);
-    pad.addEventListener("pointercancel", e => {
-      if (e.pointerId !== activeId) return;
-      activeId = null;
-      if (kind === "move") {
-        knob.style.left = "32%"; knob.style.top = "32%";
-        touch.moveX = 0; touch.moveY = 0;
+      activeId=e.pointerId; pad.setPointerCapture(e.pointerId); update(e);
+      if (kind === "aim") {
+        holdFired = false;
+        if (holdTimer !== null) clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => {
+          if (activeId !== e.pointerId || holdFired) return;
+          const p1 = findPlayer(1);
+          if (p1 && p1.alive) tryFire(p1);
+          if (audio) audio.ensureStarted();
+          holdFired = true;
+          holdTimer = null;
+        }, AIM_FIRE_HOLD_MS);
       }
     });
+    pad.addEventListener("pointermove", e => { if (e.pointerId === activeId) { e.preventDefault(); update(e); } });
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
   }
 
   function bindHoldButton(button, key) {
