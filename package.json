@@ -1,0 +1,16 @@
+{
+  "name": "box-tanks-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Two-player authoritative WebSocket tank battles",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test test/*.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "8.21.3"
+  }
+}

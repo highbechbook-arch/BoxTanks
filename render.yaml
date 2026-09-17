@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: box-tanks-online
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22

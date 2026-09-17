@@ -1,0 +1,160 @@
+:root {
+  color-scheme: dark;
+  font-family: Consolas, "Meiryo UI", monospace;
+  background: #191510;
+}
+
+* { box-sizing: border-box; }
+
+/* Ensure elements controlled with the HTML hidden attribute really disappear.
+   This is important because .menu-layer defines display:grid, which would
+   otherwise override the browser's default [hidden] style. */
+[hidden] {
+  display: none !important;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(184, 145, 87, 0.25), transparent 45%),
+    #191510;
+}
+
+.page-shell {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.game-shell {
+  position: relative;
+  width: min(100%, 960px);
+  aspect-ratio: 960 / 690;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  background: #cdb584;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #cdb584;
+}
+
+.menu-layer {
+  position: absolute;
+  left: 36.458333%;
+  top: 58.695652%;
+  width: 27.083333%;
+  display: grid;
+  gap: 11px;
+}
+
+.menu-button,
+.back-button,
+.sound-button {
+  border: 2px solid #e6d2aa;
+  background: #51432f;
+  color: #fff;
+  font: 700 clamp(12px, 1.7vw, 18px)/1 Consolas, monospace;
+  letter-spacing: .04em;
+  height: clamp(34px, 6.7vw, 46px);
+  cursor: pointer;
+  transition: transform .08s ease, filter .08s ease;
+}
+
+.menu-button:hover,
+.back-button:hover,
+.sound-button:hover { filter: brightness(1.16); }
+.menu-button:active,
+.back-button:active,
+.sound-button:active { transform: translateY(1px); }
+.menu-button.secondary { color: #f3d562; }
+
+.sound-button {
+  position: absolute;
+  left: 2.5%;
+  bottom: 2.8%;
+  width: 112px;
+  height: 34px;
+  font-size: 12px;
+}
+
+.back-button {
+  position: absolute;
+  right: 2.5%;
+  bottom: 2.8%;
+  width: 105px;
+  height: 34px;
+  font-size: 13px;
+}
+
+.step-note {
+  margin: 0;
+  color: #c8baa0;
+  font: 12px/1.4 "Meiryo UI", sans-serif;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  body { padding: 6px; }
+  .menu-layer { gap: 6px; }
+  .step-note { font-size: 10px; }
+}
+
+
+/* Smartphone controls */
+html, body { overscroll-behavior: none; }
+.game-shell, canvas, .mobile-controls { touch-action: none; -webkit-touch-callout: none; }
+.mobile-controls { position:absolute; inset:0; pointer-events:none; z-index:5; }
+.touch-stick { position:absolute; bottom:3.5%; width:24%; aspect-ratio:1; border:2px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(30,25,18,.28); pointer-events:auto; touch-action:none; }
+.move-stick { left:3%; }
+.aim-stick { right:3%; }
+.stick-knob { position:absolute; width:36%; aspect-ratio:1; left:32%; top:32%; border-radius:50%; background:rgba(255,255,255,.62); box-shadow:0 2px 8px rgba(0,0,0,.35); pointer-events:none; }
+.stick-label { position:absolute; inset:0; display:grid; place-items:center; color:rgba(255,255,255,.75); font:700 clamp(9px,2.4vw,15px)/1 Consolas,monospace; pointer-events:none; }
+.action-button { position:absolute; width:13%; min-width:54px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,255,255,.7); color:#fff; font:700 clamp(9px,2.5vw,15px)/1 Consolas,monospace; pointer-events:auto; touch-action:none; }
+.mine-button { right:28%; bottom:3.5%; background:rgba(65,65,65,.72); }
+.action-button:active { transform:scale(.94); filter:brightness(1.2); }
+
+@media (pointer: coarse), (max-width: 900px) {
+  body { padding:0; min-height:100dvh; background:#191510; overflow:hidden; }
+  .page-shell { width:100vw; height:100dvh; display:flex; align-items:center; justify-content:center; }
+  .game-shell { width:100vw; max-height:100dvh; border:0; box-shadow:none; }
+  .step-note { display:none; }
+  .sound-button { left:1.5%; bottom:auto; top:1.2%; width:80px; height:27px; font-size:9px; z-index:7; }
+  .back-button { right:1.5%; bottom:auto; top:1.2%; width:65px; height:27px; font-size:10px; z-index:7; }
+  .menu-button { min-height:38px; }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  .page-shell { transform:none; }
+  .game-shell { width:100vw; }
+}
+
+.online-panel {width:min(100%,960px);padding:12px;background:#2c251c;border:1px solid #76613e;border-radius:8px;font:14px/1.5 system-ui,sans-serif;}
+.online-panel strong {color:#f2d379;margin-right:16px;}
+.online-panel details {margin:6px 0;}
+.online-panel small {display:block;color:#c8baa0;}
+.room-actions {display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.online-panel button,.online-panel input {min-height:38px;border:1px solid #9a805a;border-radius:5px;padding:6px 10px;background:#453824;color:white;font:inherit;}
+.online-panel button {cursor:pointer;}button:disabled{opacity:.5;cursor:default;}
+.online-panel input {background:#181510;user-select:text;width:190px;max-width:100%;}
+#serverUrl{width:340px;}#roomCode{text-transform:uppercase;}#networkStatus{margin:8px 0 0;color:#f4dfb6;}
+@media (pointer:coarse), (max-width:900px) {
+ body{overflow:auto;padding:6px;}.page-shell{width:100%;height:auto;min-height:100dvh;display:flex;flex-direction:column;gap:8px;}
+ .game-shell{width:min(100%,960px);flex-shrink:0;max-height:none;}
+ .online-panel{font-size:12px;padding:8px;} .online-panel button,.online-panel input{min-height:36px;}
+ .sound-button,.back-button{top:8.7%;}
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>BOX TANKS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="online-panel" aria-label="オンライン対戦">
+      <strong>ONLINE 1 vs 1</strong><span>3ラウンド先取・各120秒</span>
+      <details><summary>通信サーバー設定（GitHub Pages利用時）</summary>
+      <label>サーバーURL <input id="serverUrl" type="url" placeholder="https://あなたのサーバー.onrender.com" /></label>
+      <small>サーバーが配信するURLで開く場合は空欄でOK。</small></details>
+      <div class="room-actions"><button id="createRoom">ルーム作成</button>
+      <input id="roomCode" aria-label="ルームコード" placeholder="8桁のルームコード" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" />
+      <button id="joinRoom">参加</button><button id="copyCode">コードをコピー</button>
+      <button id="leaveRoom" hidden>退出</button><button id="rematch" hidden>再対戦</button></div>
+      <p id="networkStatus" role="status" aria-live="polite">一人がルームを作成し、もう一人がコードを入力して参加してください。</p>
+    </section>
+    <section id="gameShell" class="game-shell" aria-label="BOX TANKS">
+      <canvas id="gameCanvas" width="960" height="690" tabindex="0">
+        Your browser does not support HTML5 Canvas.
+      </canvas>
+
+      <div id="titleMenu" class="menu-layer" aria-label="Title menu">
+        <button id="onePlayerButton" class="menu-button" type="button">1 PLAYER</button>
+        <button id="twoPlayerButton" class="menu-button" type="button">LOCAL 2P</button>
+      </div>
+
+      <button id="soundButton" class="sound-button" type="button" aria-pressed="false">SOUND ON</button>
+      <button id="backButton" class="back-button" type="button" hidden>TITLE</button>
+
+      <div id="mobileControls" class="mobile-controls" hidden aria-label="Mobile controls">
+        <div id="movePad" class="touch-stick move-stick" aria-label="Move">
+          <div class="stick-label">MOVE</div><div id="moveKnob" class="stick-knob"></div>
+        </div>
+        <div id="aimPad" class="touch-stick aim-stick" aria-label="Aim">
+          <div class="stick-label">AIM</div><div id="aimKnob" class="stick-knob"></div>
+        </div>
+        <button id="mineButton" class="action-button mine-button" type="button">MINE</button>
+      </div>
+    </section>
+    <p class="step-note">PC: keyboard + mouse / Smartphone: touch controls</p>
+  </main>
+
+  <script src="renderer.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+  <script src="online.js"></script>
+</body>
+</html>
