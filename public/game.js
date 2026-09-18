@@ -25,6 +25,7 @@
   const coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   const touch = { moveX:0, moveY:0, aimX:1, aimY:0, aiming:false, fire:false, mine:false };
 
+  const onlineBuffer = new window.BoxSnapshotBuffer();
   let onlineActive = false;
   let onlinePlayer = 1;
   let onlineShot = false;
@@ -786,7 +787,7 @@
   }
 
   function toRenderModel() {
-    if (onlineActive) return game;
+    if (onlineActive) return onlineBuffer.sample(performance.now()) || game;
     const p1 = findPlayer(1), p2 = findPlayer(2);
     const p1Bullets = p1 ? game.bullets.filter(b => b.alive && b.owner === p1).length : 0;
     const p1Mines = p1 ? game.mines.filter(m => m.alive && m.owner === p1).length : 0;
@@ -959,13 +960,13 @@
 
   window.BoxGame = {
     begin(index) {
-      onlineActive=true;onlinePlayer=index;onlineShot=false;
+      onlineActive=true;onlinePlayer=index;onlineShot=false;onlineBuffer.reset();
       keys.clear();resetTouchControls();mouse.left=mouse.right=false;
       titleMenu.hidden=true;backButton.hidden=false;
       mobileControls.hidden=!coarsePointer;
       if(audio)audio.ensureStarted();
     },
-    receive(model) {
+    receive(model, serverTime) {
       if(!onlineActive)return;
       if(audio && game.online && model.events){
         if(model.events.shot>(game.events?.shot||0))audio.playShot(false);
@@ -973,6 +974,7 @@
         if(model.events.bounce>(game.events?.bounce||0))audio.playRicochet();
         if(model.events.explosion>(game.events?.explosion||0))audio.playExplosion();
       }
+      onlineBuffer.push(model,serverTime,performance.now());
       game=model;
     },
     title:showTitle,

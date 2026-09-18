@@ -34,7 +34,7 @@
      active=true;lastState=Date.now();window.BoxGame.begin(player);$('rematch').hidden=true;$('rematch').disabled=false;$('rematch').textContent='再対戦';
      status(`対戦中 ｜ ${$('roomCode').value} ｜ あなたは P${player}（${player===1?'青':'赤'}）`);
     }
-    if(msg.type==='state' && active){lastState=Date.now();window.BoxGame.receive(msg.model);$('rematch').hidden=msg.model.state!=='Complete';}
+    if(msg.type==='state' && active){lastState=Date.now();window.BoxGame.receive(msg.model,msg.serverTime);$('rematch').hidden=msg.model.state!=='Complete';}
     if(msg.type==='votes')status(`再対戦の準備 ${msg.count}/2人 ｜ 両者が「再対戦」を押すと開始`);
     if(msg.type==='left'){const wasActive=active;clear();if(wasActive)window.BoxGame.title();status(msg.message);}
     if(msg.type==='error')status(msg.message);
@@ -51,7 +51,7 @@
  setInterval(()=>{
   if(!active)return;
   if(Date.now()-lastState>10000){socket?.close();return;}
-  if(socket?.bufferedAmount<8192)send({type:'input',input:window.BoxGame.input()});
+  if(socket?.bufferedAmount<2048)send({type:'input',input:document.hidden?{x:0,y:0,angle:0,fire:false,mine:false}:window.BoxGame.input()});
  },1000/30);
  document.addEventListener('visibilitychange',()=>{if(document.hidden && active)send({type:'input',input:{x:0,y:0,angle:0,fire:false,mine:false}});});
 })();

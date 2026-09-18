@@ -323,7 +323,7 @@
         ctx.fillStyle = COLORS.Player2;
         ctx.fillText(`P2 ${model.p2Score || 0}`, 500, 31);
         ctx.fillStyle = "white";
-        ctx.fillText(model.online ? "FIRST TO 3" : "2P MAX 20", 635, 31);
+        ctx.fillText(model.online ? `MAP ${model.stageId || 1}/10` : "2P MAX 20", 635, 31);
       }
 
       ctx.font = "bold 12px 'Meiryo UI', sans-serif";

@@ -5,7 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const {WebSocketServer, WebSocket} = require('ws');
 const createMatch = require('./engine.cjs');
-const files = {'/':'index.html','/index.html':'index.html','/style.css':'style.css','/game.js':'game.js','/renderer.js':'renderer.js','/audio.js':'audio.js','/online.js':'online.js'};
+const files = {'/':'index.html','/index.html':'index.html','/style.css':'style.css','/game.js':'game.js','/renderer.js':'renderer.js','/audio.js':'audio.js','/online.js':'online.js','/sync.js':'sync.js'};
 const server = http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
  if(pathname==='/health'){res.writeHead(200);return res.end('ok');}
@@ -17,7 +17,15 @@ const server = http.createServer((req,res)=>{
 const wss=new WebSocketServer({server,path:'/ws',maxPayload:2048});
 const rooms=new Map();
 function send(ws,msg){if(ws.readyState===WebSocket.OPEN && ws.bufferedAmount<256000)ws.send(JSON.stringify(msg));}
-function broadcast(room,msg){room.players.forEach(ws=>send(ws,msg));}
+function broadcast(room,msg){
+ if(msg.type==='state')msg.serverTime=performance.now();
+ const payload=JSON.stringify(msg);
+ for(const ws of room.players){
+  // Drop superseded snapshots rather than accumulating seconds of old positions.
+  const limit=msg.type==='state'?16384:256000;
+  if(ws.readyState===WebSocket.OPEN && ws.bufferedAmount<limit)ws.send(payload);
+ }
+}
 function leave(ws){
  const room=ws.room;if(!room)return;
  rooms.delete(room.code);
@@ -60,15 +68,20 @@ wss.on('connection',ws=>{
   }
  });
 });
-let frame=0;
+const STEP=1000/60;
+let previous=performance.now(),accumulator=0,frame=0;
 const tick=setInterval(()=>{
- frame++;
+ const now=performance.now();accumulator=Math.min(accumulator+now-previous,STEP*5);previous=now;
+ let steps=0;
+ while(accumulator>=STEP){accumulator-=STEP;steps++;}
+ if(!steps)return;
+ const publish=Math.floor((frame+steps)/2)!==Math.floor(frame/2);frame+=steps;
  for(const room of rooms.values()){
   if(!room.match){if(Date.now()-room.created>30*60*1000)leave(room.players[0]);continue;}
-  room.match.tick();
-  if(frame%2===0)broadcast(room,{type:'state',model:room.match.snapshot()});
+  for(let i=0;i<steps;i++)room.match.tick();
+  if(publish)broadcast(room,{type:'state',model:room.match.snapshot()});
  }
-},1000/60);
+},8);
 const heartbeat=setInterval(()=>{for(const ws of wss.clients){if(!ws.alive){ws.terminate();continue;}ws.alive=false;ws.ping();}},15000);
 server.listen(Number(process.env.PORT)||3000,'0.0.0.0',()=>console.log(`BOX TANKS listening on ${server.address().port}`));
 function shutdown(){clearInterval(tick);clearInterval(heartbeat);for(const ws of wss.clients)ws.terminate();wss.close();server.close();}

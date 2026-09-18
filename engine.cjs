@@ -1,6 +1,17 @@
 "use strict";
 // Physics adapted from the supplied BOX TANKS game; each room owns an isolated engine.
-module.exports = function createMatch() {
+const stages = require("./stages.cjs");
+module.exports = function createMatch(options = {}) {
+ let stageBag = [], previousStage = -1, entityId = 0;
+ function nextStage() {
+  if (Number.isInteger(options.stageIndex)) return stages[options.stageIndex];
+  if (!stageBag.length) {
+   stageBag = stages.map((_,i)=>i);
+   for(let i=stageBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[stageBag[i],stageBag[j]]=[stageBag[j],stageBag[i]];}
+   if(stageBag[stageBag.length-1]===previousStage)[stageBag[0],stageBag[stageBag.length-1]]=[stageBag[stageBag.length-1],stageBag[0]];
+  }
+  previousStage=stageBag.pop();return stages[previousStage];
+ }
  const FIELD = {left:24,top:72,right:936,bottom:636};
  const audio = {playShot(){game.events.shot++;},playMine(){game.events.mine++;},playRicochet(){game.events.bounce++;},playExplosion(){game.events.explosion++;}};
  let game, countdown, remaining, roundEnd;
@@ -14,7 +25,9 @@ module.exports = function createMatch() {
   game.tanks=[newTank("Player1",110,354),newTank("Player2",850,354)];
   game.tanks[1].turretAngle=Math.PI;
   for(const key of ["bullets","mines","explosions","tracks","sparks"]) game[key]=[];
-  game.walls=[{rect:{x:420,y:210,w:120,h:48},destructible:false},{rect:{x:420,y:450,w:120,h:48},destructible:false}];
+  const stage=nextStage();
+  game.stageId=stage.id;game.stageName=stage.name;
+  game.walls=stage.walls.map(w=>({...w,rect:{...w.rect}}));
   game.seconds=120; countdown=180; remaining=60*120; roundEnd=0; inputs.fill(null);
  }
  function input(index,value) {
@@ -164,7 +177,7 @@ module.exports = function createMatch() {
     if (current >= t.bulletLimit) return;
     const dirX = Math.cos(t.turretAngle), dirY = Math.sin(t.turretAngle), muzzle = t.radius + 10;
     game.bullets.push({
-      owner: t,
+      id: ++entityId, owner: t,
       x: t.x + dirX * muzzle,
       y: t.y + dirY * muzzle,
       vx: dirX * t.bulletSpeed,
@@ -190,7 +203,7 @@ module.exports = function createMatch() {
     if (!t.alive || t.mineLimit <= 0 || t.mineCooldown > 0) return;
     const current = game.mines.filter(m => m.alive && m.owner === t).length;
     if (current >= t.mineLimit) return;
-    game.mines.push({ owner: t, x: t.x, y: t.y, fuse: 420, armFrames: 45, alive: true, radius: 8 });
+    game.mines.push({ id: ++entityId, owner: t, x: t.x, y: t.y, fuse: 420, armFrames: 45, alive: true, radius: 8 });
     t.mineCooldown = t.kind === "Yellow" ? 58 : 95;
     if (t.invisible) t.revealFrames = 26;
     if (audio) audio.playMine();
@@ -280,7 +293,7 @@ module.exports = function createMatch() {
     if (!mine.alive) return;
     mine.alive = false;
     if (audio) audio.playExplosion();
-    game.explosions.push({ x: mine.x, y: mine.y, age: 0, life: 28, maxRadius: 62, radius: 0 });
+    game.explosions.push({ id: ++entityId, x: mine.x, y: mine.y, age: 0, life: 28, maxRadius: 62, radius: 0 });
     for (const other of game.mines) {
       if (!other.alive || other === mine) continue;
       if ((other.x - mine.x) ** 2 + (other.y - mine.y) ** 2 < 78 ** 2) other.fuse = Math.min(other.fuse, 3);
@@ -301,7 +314,7 @@ module.exports = function createMatch() {
     if (!victim.alive) return;
     victim.alive = false;
     if (audio) audio.playExplosion();
-    game.explosions.push({ x: victim.x, y: victim.y, age: 0, life: 28, maxRadius: 62, radius: 0 });
+    game.explosions.push({ id: ++entityId, x: victim.x, y: victim.y, age: 0, life: 28, maxRadius: 62, radius: 0 });
     spawnSparks(victim.x, victim.y, tankColor(victim.kind), 24);
     if (!victim.isPlayer) {
       game.totalDestroyed++;
@@ -318,7 +331,7 @@ module.exports = function createMatch() {
   function spawnSparks(x, y, color, count) {
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2, speed = 0.8 + Math.random() * 4.3, life = 15 + randInt(0, 21);
-      game.sparks.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life, maxLife: life, color });
+      game.sparks.push({ id: ++entityId, x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life, maxLife: life, color });
     }
   }
   function updateEffects() {
